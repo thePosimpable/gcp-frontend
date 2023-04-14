@@ -12,7 +12,7 @@
               <q-toolbar-title>
                 {{ addOrUpdateEvent }} Event
               </q-toolbar-title>
-              <q-btn flat round color="white" icon="close" v-close-popup></q-btn>
+              <q-btn flat round color="white" icon="add" v-close-popup></q-btn>
             </q-toolbar>
             <q-card-section class="inset-shadow">
               <q-input
