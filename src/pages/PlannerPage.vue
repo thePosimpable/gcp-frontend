@@ -72,7 +72,7 @@
 
             </q-card-section>
             <q-card-actions align="right">
-              <q-btn flat label="OK" type="submit" color="primary"></q-btn>
+              <q-btn flat label="OK" type="submit" color="primary" v-close-popup></q-btn>
               <q-btn flat label="Cancel" type="reset" color="primary" v-close-popup></q-btn>
             </q-card-actions>
           </q-card>
@@ -89,8 +89,8 @@
 
           <q-toolbar-title><span class="text-weight-bold">Quasar</span> Framework</q-toolbar-title>
 
-          <q-btn flat round dense icon="edit" v-close-popup />
-          <q-btn flat round dense icon="delete" v-close-popup />
+          <q-btn flat round dense icon="edit" v-close-popup @click="showEditForm" />
+          <q-btn flat round dense icon="delete" v-close-popup @click="deleteEvent"/>
           <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
 
@@ -159,11 +159,11 @@
                 @click = "viewEventDetails(computedEvent)"
               >
                 <div
-                  v-if="computedEvent.event && computedEvent.event.details"
+                  v-if="computedEvent.event"
                   class="title q-calendar__ellipsis"
                 >
-                  {{ computedEvent.event.title + (computedEvent.event.time ? ' - ' + computedEvent.event.time : '') }}
-                  <q-tooltip>{{ computedEvent.event.details }}</q-tooltip>
+                  {{ computedEvent.event.title }}
+                  <q-tooltip>{{ computedEvent.event.details? computedEvent.event.details:'no details' }}</q-tooltip>
                 </div>
               </div>
             </template>
@@ -191,14 +191,13 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarMonth.sass'
 import { defineComponent, ref } from 'vue'
 import NavigationBar from '../components/NavigationBar.vue'
 
+import axios, { Axios } from 'axios';
+
 const formDefault = {
   title: '',
-  details: '',
-  allDay: false,
-  dateTimeStart: '',
-  dateTimeEnd: '',
+  description: '',
   icon: '',
-  bgcolor: '#0000FF',
+  // color: '#0000FF',
   startDate: new Date().toJSON().slice(0, 10).split('-').join('/'),
   endDate: new Date().toJSON().slice(0, 10).split('-').join('/')
 }
@@ -468,23 +467,58 @@ export default defineComponent({
       console.log('onClickHeadWorkweek', data)
     },
     onSubmit(data){
-      console.log(this.events, typeof this.events)
+      console.log(data);
 
-      this.events.push({
-        id: this.events.length + 1,
-        title: this.eventForm.title,
-        details: this.eventForm.details,
-        start: this.eventForm.startDate.split('/').join('-'),
-        end: this.eventForm.endDate.split('/').join('-'),
-        bgcolor: 'orange',
-        // icon: 'fas fa-plane'
-      });
+      axios
+        .post(`${process.env.BACKEND_URL}/entries/`, {...this.eventForm})
+        .then(({response}) => {
+          console.log(response);
+          this.getData();
+        })
+        .catch(({error}) => {
+          console.log(error);
+        });
     },
     viewEventDetails({event}){
       this.showViewEventModal = true;
       this.viewEvent = {...event};
+    },
+    getData(){
+      axios
+        .get(`${process.env.BACKEND_URL}/entries/`, {})
+        .then(({data}) => {
+          this.events = [...data];
+        });
+    },
+    deleteEvent(){
+      console.log(this.viewEvent);
+      axios
+        .delete(`${process.env.BACKEND_URL}/entries/${this.viewEvent.entryId}`, {})
+        .then(({response}) => {
+          console.log(response);
+          this.getData();
+        })
+        .catch(({error}) => {
+          console.log(error);
+        });
+    },
+    showEditForm(){
+      this.eventForm = {
+        title: this.viewEvent.title,
+        description: this.viewEvent.details,
+        startDate: this.viewEvent.start.split('-').join('/'),
+        endDate: this.viewEvent.end.split('-').join('/'),
+        color: this.viewEvent.bgcolor,
+        icon: this.viewEvent.icon,
+        entryId: this.viewEvent.entryId
+      };
+
+      this.addEvent = true;
     }
-  }
+  },
+  mounted() {
+    this.getData()
+  },
 })
 </script>
 
