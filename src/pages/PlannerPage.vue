@@ -1,18 +1,18 @@
 <template>
   <div class="subcontent">
-    <q-dialog v-model="addEvent" no-backdrop-dismiss>
+    <q-dialog v-model="addEntry" no-backdrop-dismiss>
       <div>
         <q-form
           ref='event'
           @submit="onSubmit"
           @reset="onReset"
         >
-          <q-card v-if="addEvent" style="width: 400px;">
+          <q-card v-if="addEntry" style="width: 400px;">
             <q-toolbar class="bg-primary text-white">
               <q-toolbar-title>
-                {{ addOrUpdateEvent }} Event
+                {{ eventForm.entryId? "Edit":"Add" }} Entry
               </q-toolbar-title>
-              <q-btn flat round color="white" icon="add" v-close-popup></q-btn>
+              <q-btn flat round color="white" icon="close" v-close-popup></q-btn>
             </q-toolbar>
             <q-card-section class="inset-shadow">
               <q-input
@@ -22,8 +22,10 @@
                 autofocus
               />
               <q-input
-                v-model="eventForm.details"
-                label="Details"
+                v-model="eventForm.description"
+                label="Description"
+                type="textarea"
+                filled
               />
 
               <q-input v-model="eventForm.startDate" mask="date" label="Start Date">
@@ -32,7 +34,6 @@
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                       <q-date v-model="eventForm.startDate">
                         <div class="row items-center justify-end">
-                          {{ eventForm.startDate }}
                           <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
                       </q-date>
@@ -56,7 +57,7 @@
               </q-input>
 
               <q-input
-                v-model="eventForm.bgcolor"
+                v-model="eventForm.color"
                 label="Color"
                 outlined
                 clearable
@@ -64,7 +65,31 @@
                 <template #append>
                   <q-icon name="colorize" class="cursor-pointer">
                     <q-popup-proxy>
-                      <q-color v-model="eventForm.bgcolor"></q-color>
+                      <q-color v-model="eventForm.color"></q-color>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
+              <q-input
+                v-model="eventForm.icon"
+                label="Icon"
+                outlined
+                clearable
+                style="padding-bottom: 20px;"
+              >
+                <template #append>
+                  <q-icon name="extension" class="cursor-pointer">
+                    <q-popup-proxy v-model="showIconPicker">
+
+                      <q-icon-picker
+                        v-model="iconpickerValue"
+                        :filter="iconpickerValue"
+                        icon-set="material-icons"
+                        tooltips
+                        :pagination.sync="pagination"
+                        style="height: 300px; width: 300px; background-color: white;"
+                      />
+
                     </q-popup-proxy>
                   </q-icon>
                 </template>
@@ -72,8 +97,8 @@
 
             </q-card-section>
             <q-card-actions align="right">
-              <q-btn flat label="OK" type="submit" color="primary" v-close-popup></q-btn>
               <q-btn flat label="Cancel" type="reset" color="primary" v-close-popup></q-btn>
+              <q-btn unelevated label="Save" type="submit" color="primary" v-close-popup></q-btn>
             </q-card-actions>
           </q-card>
         </q-form>
@@ -81,27 +106,24 @@
     </q-dialog>
 
     <q-dialog v-model="showViewEventModal">
-      <q-card style="min-height: 30vh; max-height: 60vh;">
-        <q-toolbar>
-          <q-avatar>
-            <img src="https://cdn.quasar.dev/logo-v2/svg/logo.svg">
-          </q-avatar>
+      <q-card style="width: 500px; max-width: 80vw; margin-bottom: 20px">
+        <q-toolbar class="q-gutter-sm" style="padding-right: 0">
+          <q-toolbar-title>Entry Details</q-toolbar-title>
 
-          <q-toolbar-title><span class="text-weight-bold">Quasar</span> Framework</q-toolbar-title>
-
-          <q-btn flat round dense icon="edit" v-close-popup @click="showEditForm" />
-          <q-btn flat round dense icon="delete" v-close-popup @click="deleteEvent"/>
-          <q-btn flat round dense icon="close" v-close-popup />
+          <q-btn flat round dense icon="edit" v-close-popup @click="showEditForm" title="Edit"><q-tooltip>edit</q-tooltip></q-btn>
+          <q-btn flat round dense icon="content_copy" v-close-popup @click="showDuplicateForm"><q-tooltip>Duplicate</q-tooltip></q-btn>
+          <q-btn flat round dense icon="delete" v-close-popup @click="deleteEvent" title="Delete"><q-tooltip>Delete</q-tooltip></q-btn>
+          <q-btn flat round dense icon="close" v-close-popup title="Close"><q-tooltip>Close</q-tooltip></q-btn>
         </q-toolbar>
 
-        <q-card-section style="overflow-y: auto">
+        <q-card-section style="overflow-y: auto; ">
           <div class="row full-width justify-start" style="padding-top: 12px;">
             <div class="col-12">
               <div class="row full-width justify-start" v-for="[key, value] in Object.entries(viewEvent)" :key="key">
-                 <div class="col-5" style="padding-left: 20px;">
+                 <div class="col-3" style="padding-left: 20px;">
                   <strong>{{ key }}:</strong>
                 </div>
-                <div class="col-7">
+                <div class="col-9">
                   {{ value }}
                 </div>
               </div>
@@ -191,7 +213,8 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarMonth.sass'
 import { defineComponent, ref } from 'vue'
 import NavigationBar from '../components/NavigationBar.vue'
 
-import axios, { Axios } from 'axios';
+import axios from 'axios';
+import dayjs from 'dayjs';
 
 const formDefault = {
   title: '',
@@ -220,112 +243,18 @@ export default defineComponent({
   data () {
     return {
       selectedDate: today(),
-      addEvent: false,
+      addEntry: false,
       eventForm: {...formDefault},
       showViewEventModal: false,
       testStartDate: new Date().toJSON().slice(0, 10),
       viewEvent: {},
-      events: [
-        {
-          id: 1,
-          title: '1st of the Month',
-          details: 'Everything is funny as long as it is happening to someone else',
-          start: getCurrentDay(1),
-          end: getCurrentDay(1),
-          bgcolor: 'orange'
-        },
-        {
-          id: 2,
-          title: 'Sisters Birthday',
-          details: 'Buy a nice present',
-          start: getCurrentDay(4),
-          end: getCurrentDay(4),
-          bgcolor: 'green',
-          icon: 'fas fa-birthday-cake'
-        },
-        {
-          id: 3,
-          title: 'Meeting',
-          details: 'Time to pitch my idea to the company',
-          start: getCurrentDay(10),
-          end: getCurrentDay(10),
-          time: '10:00',
-          duration: 120,
-          bgcolor: 'red',
-          icon: 'fas fa-handshake'
-        },
-        {
-          id: 4,
-          title: 'Lunch',
-          details: 'Company is paying!',
-          start: getCurrentDay(10),
-          end: getCurrentDay(10),
-          time: '11:30',
-          duration: 90,
-          bgcolor: 'teal',
-          icon: 'fas fa-hamburger'
-        },
-        {
-          id: 5,
-          title: 'Visit mom',
-          details: 'Always a nice chat with mom',
-          start: getCurrentDay(20),
-          end: getCurrentDay(20),
-          time: '17:00',
-          duration: 90,
-          bgcolor: 'grey',
-          icon: 'fas fa-car'
-        },
-        {
-          id: 6,
-          title: 'Conference',
-          details: 'Teaching Javascript 101',
-          start: getCurrentDay(22),
-          end: getCurrentDay(22),
-          time: '08:00',
-          duration: 540,
-          bgcolor: 'blue',
-          icon: 'fas fa-chalkboard-teacher'
-        },
-        {
-          id: 7,
-          title: 'Girlfriend',
-          details: 'Meet GF for dinner at Swanky Restaurant',
-          start: getCurrentDay(22),
-          end: getCurrentDay(22),
-          time: '19:00',
-          duration: 180,
-          bgcolor: 'teal',
-          icon: 'fas fa-utensils'
-        },
-        {
-          id: 8,
-          title: 'Rowing',
-          details: 'Stay in shape!',
-          start: getCurrentDay(27),
-          end: getCurrentDay(28),
-          bgcolor: 'purple',
-          icon: 'rowing'
-        },
-        {
-          id: 9,
-          title: 'Fishing',
-          details: 'Time for some weekend R&R',
-          start: getCurrentDay(22),
-          end: getCurrentDay(29),
-          bgcolor: 'purple',
-          icon: 'fas fa-fish'
-        },
-        {
-          id: 10,
-          title: 'Vacation',
-          details: 'Trails and hikes, going camping! Don\'t forget to bring bear spray!',
-          start: getCurrentDay(22),
-          end: getCurrentDay(29),
-          bgcolor: 'purple',
-          icon: 'fas fa-plane'
-        }
-      ]
+      events: [],
+      showIconPicker: false,
+      pagination: {
+        itemsPerPage: 35,
+        page: 1
+      },
+      iconpickerValue: null
     }
   },
   methods: {
@@ -341,6 +270,7 @@ export default defineComponent({
         if (isOverlappingDates(startDate, endDate, firstDay, lastDay)) {
           const left = daysBetween(firstDay, startDate, true)
           const right = daysBetween(endDate, lastDay, true)
+          console.log(event);
 
           eventsWeek.push({
             id, // index event
@@ -405,7 +335,7 @@ export default defineComponent({
         return {
           'my-event': true,
           'text-white': true,
-          [ `bg-${ computedEvent.event.bgcolor }` ]: true,
+          // [ `bg-${ computedEvent.event.bgcolor }` ]: true,
           'rounded-border': true,
           'q-calendar__ellipsis': true
         }
@@ -416,11 +346,16 @@ export default defineComponent({
     },
 
     badgeStyles (computedEvent, weekLength) {
+      console.log(computedEvent);
       const s = {}
       if (computedEvent.size !== undefined) {
         s.width = ((100 / weekLength) * computedEvent.size) + '%'
       }
-      return s
+      if(computedEvent.event){
+        s.background = computedEvent.event.bgcolor;
+      }
+      console.log(s);
+      return s;
     },
 
     isBetweenDatesWeek (dateStart, dateEnd, weekStart, weekEnd) {
@@ -448,13 +383,13 @@ export default defineComponent({
     },
     onClickDate ({scope}) {
       this.eventForm = {...formDefault, startDate: scope.timestamp.date.split('-').join('/'), endDate: scope.timestamp.date.split('-').join('/')};
-      this.addEvent = true;
+      this.addEntry = true;
       console.log(this.events);
     },
     onClickDay ({scope}) {
       console.log('onClickDay', scope)
       this.eventForm = {...formDefault, startDate: scope.timestamp.date.split('-').join('/'), endDate: scope.timestamp.date.split('-').join('/')};
-      this.addEvent = true;
+      this.addEntry = true;
       console.log(this.events);
     },
     onClickWorkweek (data) {
@@ -466,28 +401,65 @@ export default defineComponent({
     onClickHeadWorkweek (data) {
       console.log('onClickHeadWorkweek', data)
     },
-    onSubmit(data){
-      console.log(data);
-
+    saveAddEntry(){
       axios
         .post(`${process.env.BACKEND_URL}/entries/`, {...this.eventForm})
         .then(({response}) => {
           console.log(response);
+          this.eventForm = {};
           this.getData();
         })
         .catch(({error}) => {
           console.log(error);
         });
     },
+    saveEditEntry(){
+      const putPayload = {...this.eventForm};
+      putPayload.startDate = `${dayjs(putPayload.startDate).format('YYYY-MM-DD')}`
+      putPayload.endDate = `${dayjs(putPayload.endDate).format('YYYY-MM-DD')}`
+
+      axios
+        .put(`${process.env.BACKEND_URL}/entries/${putPayload.entryId}`, putPayload)
+        .then(({response}) => {
+          this.eventForm = {};
+          this.getData();
+        })
+        .catch(({error}) => {
+          console.log(error);
+        });
+    },
+    onSubmit(){
+      console.log(this.eventForm, !this.eventForm.entryId);
+
+      if(!this.eventForm.entryId){
+        this.saveAddEntry();
+      }
+      else{
+        this.saveEditEntry();
+      }
+    },
     viewEventDetails({event}){
       this.showViewEventModal = true;
-      this.viewEvent = {...event};
+      console.log(event);
+      this.viewEvent = {...event, start: this.formatMonthValues(event.start, true), end: this.formatMonthValues(event.end, true)}
+    },
+    formatMonthValues(val, toSlash){
+      return toSlash? `${dayjs(val).format('MM/DD/YYYY')}`: `${dayjs(val).format('YYYY-MM-DD')}`;
     },
     getData(){
       axios
         .get(`${process.env.BACKEND_URL}/entries/`, {})
         .then(({data}) => {
-          this.events = [...data];
+          const localData = [...data].map(element => ({
+            entryId: element.entryId,
+            title: element.title,
+            details: element.description,
+            start: element.startDate,
+            end: element.endDate,
+            bgcolor: element.color
+          }));
+
+          this.events = [...localData];
         });
     },
     deleteEvent(){
@@ -513,12 +485,29 @@ export default defineComponent({
         entryId: this.viewEvent.entryId
       };
 
-      this.addEvent = true;
+      this.addEntry = true;
+    },
+    showDuplicateForm(){
+      this.eventForm = {
+        title: this.viewEvent.title,
+        description: this.viewEvent.details,
+        startDate: this.viewEvent.start.split('-').join('/'),
+        endDate: this.viewEvent.end.split('-').join('/'),
+        color: this.viewEvent.bgcolor,
+        icon: this.viewEvent.icon,
+      };
+
+      this.addEntry = true;
     }
   },
   mounted() {
     this.getData()
   },
+  watch: {
+    iconpickerValue () {
+      this.showIconPicker = false
+    }
+  }
 })
 </script>
 
