@@ -17,13 +17,12 @@
         <q-icon name="far fa-calendar-alt" class="q-ml-md" size="1.5rem"></q-icon>
 
         <q-toolbar-title>
-          QCalendar <span class="text-subtitle2">v{{ version }}</span>
+          cTracker
         </q-toolbar-title>
 
         <q-space></q-space>
 
-        <q-btn flat round @click="$q.dark.toggle()" :icon="$q.dark.isActive ? 'brightness_2' : 'brightness_5'" />
-        <div v-if="$q.screen.width > 500">Quasar v{{ $q.version }}</div>
+        <div v-if="$q.screen.width > 500">Version {{ version }}</div>
       </q-toolbar>
     </q-header>
 
@@ -79,13 +78,19 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
-
+import version from '../../package.json';
 
 export default defineComponent({
   name: 'MainLayout',
 
   components: {
 
+  },
+
+  data(){
+    return{
+      version: version.version
+    }
   },
 
   setup () {

@@ -1,6 +1,6 @@
-# Quasar App (gcp-frontend)
+# cTracker (gcp-frontend)
 
-A Quasar Project
+Frontend of a practice project for GCP deployment. An app to track events/entries on a month-view calendar.
 
 ## Install the dependencies
 ```bash

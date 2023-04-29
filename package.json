@@ -1,8 +1,8 @@
 {
-  "name": "gcp-frontend",
-  "version": "0.0.1",
-  "description": "A Quasar Project",
-  "productName": "Quasar App",
+  "name": "cTracker",
+  "version": "1.0.0",
+  "description": "Frontend of a practice project for GCP deployment. An app to track events/entries on a month-view calendar.",
+  "productName": "cTracker",
   "author": "Alphonso Santos <alphonsoesantos@gmail.com>",
   "private": true,
   "scripts": {

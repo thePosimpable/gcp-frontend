@@ -346,7 +346,6 @@ export default defineComponent({
     },
 
     badgeStyles (computedEvent, weekLength) {
-      console.log(computedEvent);
       const s = {}
       if (computedEvent.size !== undefined) {
         s.width = ((100 / weekLength) * computedEvent.size) + '%'
@@ -384,7 +383,6 @@ export default defineComponent({
     onClickDate ({scope}) {
       this.eventForm = {...formDefault, startDate: scope.timestamp.date.split('-').join('/'), endDate: scope.timestamp.date.split('-').join('/')};
       this.addEntry = true;
-      console.log(this.events);
     },
     onClickDay ({scope}) {
       console.log('onClickDay', scope)

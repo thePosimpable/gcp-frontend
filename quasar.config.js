@@ -144,9 +144,9 @@ module.exports = configure(function (ctx) {
 
 
       manifest: {
-        name: `Quasar App`,
-        short_name: `Quasar App`,
-        description: `A Quasar Project`,
+        name: `cTracker`,
+        short_name: `cTracker`,
+        description: `Frontend of a practice project for GCP deployment. An app to track events/entries on a month-view calendar.`,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
