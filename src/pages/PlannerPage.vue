@@ -1,6 +1,6 @@
 <template>
   <div class="subcontent">
-    <!-- <q-dialog v-model="addEntry" no-backdrop-dismiss>
+    <q-dialog v-model="addEntry" no-backdrop-dismiss>
       <div>
         <q-form
           ref='event'
@@ -70,7 +70,7 @@
                   </q-icon>
                 </template>
               </q-input>
-              <q-input
+              <!-- <q-input
                 v-model="eventForm.icon"
                 label="Icon"
                 outlined
@@ -93,7 +93,7 @@
                     </q-popup-proxy>
                   </q-icon>
                 </template>
-              </q-input>
+              </q-input> -->
 
             </q-card-section>
             <q-card-actions align="right">
@@ -103,9 +103,9 @@
           </q-card>
         </q-form>
       </div>
-    </q-dialog> -->
+    </q-dialog>
 
-    <EntryForm @add-entry="addEntry"/>
+    <!-- <EntryForm @add-entry="addEntry"/> -->
 
 
     <q-dialog v-model="showViewEventModal">
@@ -215,7 +215,7 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarMonth.sass'
 
 import { defineComponent, ref } from 'vue'
 import NavigationBar from '../components/NavigationBar.vue'
-import EntryForm from '../components/EntryForm.vue';
+// import EntryForm from '../components/EntryForm.vue';
 
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -243,7 +243,7 @@ export default defineComponent({
   components: {
     NavigationBar,
     QCalendarMonth,
-    EntryForm
+    // EntryForm
   },
   data () {
     return {
