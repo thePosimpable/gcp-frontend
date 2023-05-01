@@ -20,6 +20,8 @@
           cTracker
         </q-toolbar-title>
 
+        <span class="q-mr-xl q-toolbar__title nowrap">{{ title }}</span>
+
         <q-space></q-space>
 
         <div v-if="$q.screen.width > 500">Version {{ version }}</div>
@@ -89,7 +91,7 @@ export default defineComponent({
 
   data(){
     return{
-      version: version.version
+      version: version.version,
     }
   },
 

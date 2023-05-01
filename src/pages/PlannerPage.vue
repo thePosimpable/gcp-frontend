@@ -1,6 +1,6 @@
 <template>
   <div class="subcontent">
-    <q-dialog v-model="addEntry" no-backdrop-dismiss>
+    <!-- <q-dialog v-model="addEntry" no-backdrop-dismiss>
       <div>
         <q-form
           ref='event'
@@ -103,7 +103,10 @@
           </q-card>
         </q-form>
       </div>
-    </q-dialog>
+    </q-dialog> -->
+
+    <EntryForm @add-entry="addEntry"/>
+
 
     <q-dialog v-model="showViewEventModal">
       <q-card style="width: 500px; max-width: 80vw; margin-bottom: 20px">
@@ -153,7 +156,7 @@
     <q-separator class="full-width" />
 
     <div class="row justify-center">
-      <div style="display: flex; width: 100%;">
+      <div style="display: flex; width: 100%;" class="calendar-container">
         <q-calendar-month
           ref="calendar"
           style="height: 80vh"
@@ -212,6 +215,7 @@ import '@quasar/quasar-ui-qcalendar/src/QCalendarMonth.sass'
 
 import { defineComponent, ref } from 'vue'
 import NavigationBar from '../components/NavigationBar.vue'
+import EntryForm from '../components/EntryForm.vue';
 
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -238,7 +242,8 @@ export default defineComponent({
   name: 'MonthSlotWeek',
   components: {
     NavigationBar,
-    QCalendarMonth
+    QCalendarMonth,
+    EntryForm
   },
   data () {
     return {
@@ -509,56 +514,48 @@ export default defineComponent({
 })
 </script>
 
-<style lang="sass" scoped>
-.my-event
-  position: relative
-  display: inline-flex
-  white-space: nowrap
-  font-size: 12px
-  height: 16px
-  max-height: 16px
-  margin: 1px 0 0 0
-  justify-content: center
-  text-overflow: ellipsis
-  overflow: hidden
-  cursor: pointer
+<style lang="css" scoped>
+  .my-event{
+    position: relative;
+    display: inline-flex;
+    white-space: nowrap;
+    font-size: 12px;
+    height: 16px;
+    max-height: 16px;
+    margin: 1px 0 0 0;
+    justify-content: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    cursor: pointer;
+  }
 
-.title
-  position: relative
-  display: flex
-  justify-content: center
-  align-items: center
-  height: 100%
+  .title{
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
 
-.my-void-event
-  display: inline-flex
-  white-space: nowrap
-  height: 1px
+  .my-void-event{
+    display: inline-flex;
+    white-space: nowrap;
+    height: 1px;
+  }
 
-.text-white
-  color: white
+  .text-white{
+    color: white;
+  }
 
-.bg-blue
-  background: blue
+  .rounded-border{
+    border-radius: 2px;
+  }
 
-.bg-green
-  background: green
+  .calendar-container{
+    position: relative;
+  }
 
-.bg-orange
-  background: orange
-
-.bg-red
-  background: red
-
-.bg-teal
-  background: teal
-
-.bg-grey
-  background: grey
-
-.bg-purple
-  background: purple
-
-.rounded-border
-  border-radius: 2px
+  .q-calendar-month__week--days:hover, .q-calendar-month__day--content:hover{
+    background: rgba(0,0,255,.1);
+  }
 </style>
