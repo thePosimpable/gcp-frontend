@@ -1,20 +1,20 @@
 <template>
   <div class="subcontent">
-    <q-dialog v-model="addEntry" no-backdrop-dismiss>
+    <q-dialog v-model="showFormDialog" no-backdrop-dismiss>
       <div>
         <q-form
           ref='event'
           @submit="onSubmit"
           @reset="onReset"
         >
-          <q-card v-if="addEntry" style="width: 400px;">
+          <q-card v-if="showFormDialog" style="width: 400px;">
             <q-toolbar class="bg-primary text-white">
               <q-toolbar-title>
                 {{ eventForm.entryId? "Edit":"Add" }} Entry
               </q-toolbar-title>
               <q-btn flat round color="white" icon="close" v-close-popup></q-btn>
             </q-toolbar>
-            <q-card-section class="inset-shadow">
+            <q-card-section class="inset-shadow q-gutter-y-sm">
               <q-input
                 v-model="eventForm.title"
                 label="Title"
@@ -105,7 +105,7 @@
       </div>
     </q-dialog>
 
-    <!-- <EntryForm @add-entry="addEntry"/> -->
+    <!-- <EntryForm @add-entry="showFormDialog"/> -->
 
 
     <q-dialog v-model="showViewEventModal">
@@ -119,15 +119,15 @@
           <q-btn flat round dense icon="close" v-close-popup title="Close"><q-tooltip>Close</q-tooltip></q-btn>
         </q-toolbar>
 
-        <q-card-section style="overflow-y: auto; ">
+        <q-card-section style="overflow-y: auto; " class="">
           <div class="row full-width justify-start" style="padding-top: 12px;">
-            <div class="col-12">
+            <div class="col-12 q-gutter-y-sm">
               <div class="row full-width justify-start" v-for="[key, value] in Object.entries(viewEvent)" :key="key">
-                 <div class="col-3" style="padding-left: 20px;">
+                 <div class="col-4" style="padding-left: 20px;">
                   <strong>{{ key }}:</strong>
                 </div>
-                <div class="col-9">
-                  {{ value }}
+                <div class="col-8">
+                  <span>{{ (value? value:'-') }}</span>
                 </div>
               </div>
             </div>
@@ -225,8 +225,8 @@ const formDefault = {
   description: '',
   icon: '',
   // color: '#0000FF',
-  startDate: new Date().toJSON().slice(0, 10).split('-').join('/'),
-  endDate: new Date().toJSON().slice(0, 10).split('-').join('/')
+  startDate: dayjs().format('YYYY/MM/DD'),
+  endDate: dayjs().format('YYYY/MM/DD')
 }
 
 // The function below is used to set up our demo data
@@ -248,7 +248,7 @@ export default defineComponent({
   data () {
     return {
       selectedDate: today(),
-      addEntry: false,
+      showFormDialog: false,
       eventForm: {...formDefault},
       showViewEventModal: false,
       testStartDate: new Date().toJSON().slice(0, 10),
@@ -275,7 +275,6 @@ export default defineComponent({
         if (isOverlappingDates(startDate, endDate, firstDay, lastDay)) {
           const left = daysBetween(firstDay, startDate, true)
           const right = daysBetween(endDate, lastDay, true)
-          console.log(event);
 
           eventsWeek.push({
             id, // index event
@@ -358,7 +357,6 @@ export default defineComponent({
       if(computedEvent.event){
         s.background = computedEvent.event.bgcolor;
       }
-      console.log(s);
       return s;
     },
 
@@ -387,12 +385,12 @@ export default defineComponent({
     },
     onClickDate ({scope}) {
       this.eventForm = {...formDefault, startDate: scope.timestamp.date.split('-').join('/'), endDate: scope.timestamp.date.split('-').join('/')};
-      this.addEntry = true;
+      this.showFormDialog = true;
     },
     onClickDay ({scope}) {
       console.log('onClickDay', scope)
       this.eventForm = {...formDefault, startDate: scope.timestamp.date.split('-').join('/'), endDate: scope.timestamp.date.split('-').join('/')};
-      this.addEntry = true;
+      this.showFormDialog = true;
       console.log(this.events);
     },
     onClickWorkweek (data) {
@@ -404,9 +402,18 @@ export default defineComponent({
     onClickHeadWorkweek (data) {
       console.log('onClickHeadWorkweek', data)
     },
-    saveAddEntry(){
+    saveshowFormDialog(){
+      const formPayload = {
+        title: this.eventForm.title,
+        description: this.eventForm.description,
+        startDate: this.eventForm.startDate,
+        endDate: this.eventForm.endDate,
+        color: this.eventForm.color,
+        icon: this.eventForm.icon,
+      }
+
       axios
-        .post(`${process.env.BACKEND_URL}/entries/`, {...this.eventForm})
+        .post(`${process.env.BACKEND_URL}/entries/`, formPayload)
         .then(({response}) => {
           console.log(response);
           this.eventForm = {};
@@ -435,38 +442,40 @@ export default defineComponent({
       console.log(this.eventForm, !this.eventForm.entryId);
 
       if(!this.eventForm.entryId){
-        this.saveAddEntry();
+        this.saveshowFormDialog();
       }
       else{
         this.saveEditEntry();
       }
     },
     viewEventDetails({event}){
+      this.viewEvent = {...event}
       this.showViewEventModal = true;
-      console.log(event);
-      this.viewEvent = {...event, start: this.formatMonthValues(event.start, true), end: this.formatMonthValues(event.end, true)}
     },
-    formatMonthValues(val, toSlash){
-      return toSlash? `${dayjs(val).format('MM/DD/YYYY')}`: `${dayjs(val).format('YYYY-MM-DD')}`;
+    formatMonthValue(val, toSlash){
+      console.log('formatMonthValue');
+      return toSlash? `${dayjs(val).format('YYYY/MM/DD')}`: `${dayjs(val).format('YYYY-MM-DD')}`;
     },
     getData(){
       axios
         .get(`${process.env.BACKEND_URL}/entries/`, {})
         .then(({data}) => {
           const localData = [...data].map(element => ({
-            entryId: element.entryId,
-            title: element.title,
+            ...element,
             details: element.description,
             start: element.startDate,
+            startDate: dayjs(element.startDate).format("YYYY/MM/DD"),
+            startDateDisplay: dayjs(element.startDate).format("ddd, MMM D, YYYY"),
             end: element.endDate,
-            bgcolor: element.color
+            endDate: dayjs(element.endDate).format("YYYY/MM/DD"),
+            endDateDisplay: dayjs(element.endDate).format("ddd, MMM-D-YYYY"),
+            bgcolor: element.color,
           }));
 
           this.events = [...localData];
         });
     },
     deleteEvent(){
-      console.log(this.viewEvent);
       axios
         .delete(`${process.env.BACKEND_URL}/entries/${this.viewEvent.entryId}`, {})
         .then(({response}) => {
@@ -478,29 +487,13 @@ export default defineComponent({
         });
     },
     showEditForm(){
-      this.eventForm = {
-        title: this.viewEvent.title,
-        description: this.viewEvent.details,
-        startDate: this.viewEvent.start.split('-').join('/'),
-        endDate: this.viewEvent.end.split('-').join('/'),
-        color: this.viewEvent.bgcolor,
-        icon: this.viewEvent.icon,
-        entryId: this.viewEvent.entryId
-      };
-
-      this.addEntry = true;
+      this.eventForm = {...this.viewEvent}
+      this.showFormDialog = true;
     },
     showDuplicateForm(){
-      this.eventForm = {
-        title: this.viewEvent.title,
-        description: this.viewEvent.details,
-        startDate: this.viewEvent.start.split('-').join('/'),
-        endDate: this.viewEvent.end.split('-').join('/'),
-        color: this.viewEvent.bgcolor,
-        icon: this.viewEvent.icon,
-      };
+      this.eventForm = {...this.viewEvent, entryId: undefined};
 
-      this.addEntry = true;
+      this.showFormDialog = true;
     }
   },
   mounted() {
@@ -510,7 +503,7 @@ export default defineComponent({
     iconpickerValue () {
       this.showIconPicker = false
     }
-  }
+  },
 })
 </script>
 
