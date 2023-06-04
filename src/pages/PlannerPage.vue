@@ -259,7 +259,8 @@ export default defineComponent({
         itemsPerPage: 35,
         page: 1
       },
-      iconpickerValue: null
+      iconpickerValue: null,
+      token: localStorage.getItem("token")
     }
   },
   methods: {
@@ -458,7 +459,11 @@ export default defineComponent({
     },
     getData(){
       axios
-        .get(`${process.env.BACKEND_URL}/entries/`, {})
+        .get(`${process.env.BACKEND_URL}/get-entries`, {
+          params: {
+            token: this.token
+          }
+        })
         .then(({data}) => {
           const localData = [...data].map(element => ({
             ...element,
