@@ -403,7 +403,7 @@ export default defineComponent({
     onClickHeadWorkweek (data) {
       console.log('onClickHeadWorkweek', data)
     },
-    saveshowFormDialog(){
+    saveAddEntry(){
       const formPayload = {
         title: this.eventForm.title,
         description: this.eventForm.description,
@@ -414,11 +414,18 @@ export default defineComponent({
       }
 
       axios
-        .post(`${process.env.BACKEND_URL}/entries/`, formPayload)
+        .post(`${process.env.BACKEND_URL}/add-entry`, formPayload, {
+          params: {
+            token: this.token
+          },
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
         .then(({response}) => {
           console.log(response);
           this.eventForm = {};
-          this.getData();
+          this.getEntries();
         })
         .catch(({error}) => {
           console.log(error);
@@ -430,10 +437,13 @@ export default defineComponent({
       putPayload.endDate = `${dayjs(putPayload.endDate).format('YYYY-MM-DD')}`
 
       axios
-        .put(`${process.env.BACKEND_URL}/entries/${putPayload.entryId}`, putPayload)
+        .put(`${process.env.BACKEND_URL}/edit-entry`, putPayload, {
+          params: {entryId: putPayload.entryId, token: this.token},
+          headers: {"Content-Type": "application/json"}
+        })
         .then(({response}) => {
           this.eventForm = {};
-          this.getData();
+          this.getEntries();
         })
         .catch(({error}) => {
           console.log(error);
@@ -443,7 +453,7 @@ export default defineComponent({
       console.log(this.eventForm, !this.eventForm.entryId);
 
       if(!this.eventForm.entryId){
-        this.saveshowFormDialog();
+        this.saveAddEntry();
       }
       else{
         this.saveEditEntry();
@@ -457,7 +467,7 @@ export default defineComponent({
       console.log('formatMonthValue');
       return toSlash? `${dayjs(val).format('YYYY/MM/DD')}`: `${dayjs(val).format('YYYY-MM-DD')}`;
     },
-    getData(){
+    getEntries(){
       axios
         .get(`${process.env.BACKEND_URL}/get-entries`, {
           params: {
@@ -482,10 +492,15 @@ export default defineComponent({
     },
     deleteEvent(){
       axios
-        .delete(`${process.env.BACKEND_URL}/entries/${this.viewEvent.entryId}`, {})
+        .delete(`${process.env.BACKEND_URL}/delete-entry`, {
+          params: {
+            token: this.token,
+            entryId: this.viewEvent.entryId
+          }
+        })
         .then(({response}) => {
           console.log(response);
-          this.getData();
+          this.getEntries();
         })
         .catch(({error}) => {
           console.log(error);
@@ -502,7 +517,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.getData()
+    this.getEntries()
   },
   watch: {
     iconpickerValue () {

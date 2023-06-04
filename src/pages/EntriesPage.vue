@@ -180,20 +180,25 @@ export default defineComponent({
     return {
       columns: columns,
       rows: rows,
-      events: []
+      events: [],
+      token: localStorage.getItem("token")
     }
   },
   methods: {
-    getData(){
+    getEntries(){
       axios
-        .get(`${process.env.BACKEND_URL}/entries/`, {})
+        .get(`${process.env.BACKEND_URL}/get-entries`, {
+          params: {
+            token: this.token
+          }
+        })
         .then(({data}) => {
           this.rows = [...data];
         });
     }
   },
   mounted() {
-    this.getData()
+    this.getEntries()
   },
 })
 
