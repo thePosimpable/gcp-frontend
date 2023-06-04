@@ -181,7 +181,6 @@ export default defineComponent({
       columns: columns,
       rows: rows,
       events: [],
-      token: localStorage.getItem("token")
     }
   },
   methods: {
@@ -189,7 +188,7 @@ export default defineComponent({
       axios
         .get(`${process.env.BACKEND_URL}/get-entries`, {
           params: {
-            token: this.token
+            token: localStorage.getItem("token")
           }
         })
         .then(({data}) => {

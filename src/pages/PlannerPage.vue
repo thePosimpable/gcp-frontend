@@ -260,7 +260,6 @@ export default defineComponent({
         page: 1
       },
       iconpickerValue: null,
-      token: localStorage.getItem("token")
     }
   },
   methods: {
@@ -416,7 +415,7 @@ export default defineComponent({
       axios
         .post(`${process.env.BACKEND_URL}/add-entry`, formPayload, {
           params: {
-            token: this.token
+            token: localStorage.getItem("token")
           },
           headers: {
             "Content-Type": "application/json"
@@ -438,7 +437,7 @@ export default defineComponent({
 
       axios
         .put(`${process.env.BACKEND_URL}/edit-entry`, putPayload, {
-          params: {entryId: putPayload.entryId, token: this.token},
+          params: {entryId: putPayload.entryId, token: localStorage.getItem("token")},
           headers: {"Content-Type": "application/json"}
         })
         .then(({response}) => {
@@ -471,7 +470,7 @@ export default defineComponent({
       axios
         .get(`${process.env.BACKEND_URL}/get-entries`, {
           params: {
-            token: this.token
+            token: localStorage.getItem("token")
           }
         })
         .then(({data}) => {
@@ -494,7 +493,7 @@ export default defineComponent({
       axios
         .delete(`${process.env.BACKEND_URL}/delete-entry`, {
           params: {
-            token: this.token,
+            token: localStorage.getItem("token"),
             entryId: this.viewEvent.entryId
           }
         })
