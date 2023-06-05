@@ -14,7 +14,11 @@
                 </q-form>
               </q-card-section>
               <q-card-actions class="q-px-md">
-                <q-btn unelevated color="light-blue-7" size="lg" class="full-width" label="Login" @click="login" />
+                <q-btn unelevated :color="loginSuccess? 'green-5  ':'light-blue-7'" size="lg" class="full-width" @click="login">
+                  <span v-show="!processing">LOGIN</span>
+                  <q-spinner-facebook slot="loading" size="20" v-show="processing"/>
+                  <q-icon name="done" v-show="loginSuccess"></q-icon>
+                </q-btn>
               </q-card-actions>
             </q-card>
           </div>
@@ -58,11 +62,15 @@ export default defineComponent({
   data () {
     return {
       email: '',
-      password: ''
+      password: '',
+      processing: false,
+      loginSuccess: false
     }
   },
   methods: {
     login(){
+      this.processing = true;
+
       const auth = getAuth();
 
       signInWithEmailAndPassword(auth, this.email, this.password)
@@ -74,11 +82,17 @@ export default defineComponent({
         localStorage.setItem("token", user.accessToken);
         localStorage.setItem("source", "firebase");
 
+        this.processing = false;
+        this.loginSuccess = true;
+
         this.$router.push("/");
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
+
+        this.processing = false;
+        this.loginSuccess = false;
 
         console.log(errorCode, errorMessage);
       });

@@ -393,7 +393,7 @@ export default defineComponent({
       console.log('onClickDay', scope)
       this.eventForm = {...formDefault, startDate: scope.timestamp.date.split('-').join('/'), endDate: scope.timestamp.date.split('-').join('/')};
       this.showFormDialog = true;
-      console.log(this.events);
+      // console.log(this.events);
     },
     onClickWorkweek (data) {
       console.log('onClickWorkweek', data)
