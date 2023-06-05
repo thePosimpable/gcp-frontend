@@ -25,6 +25,17 @@
         <q-space></q-space>
 
         <div v-if="$q.screen.width > 500">Version {{ version }}</div>
+
+        <q-btn
+          flat
+          dense
+          round
+          @click="logout"
+          aria-label="Logout"
+          class="q-ml-md"
+        >
+          <q-icon name="logout"></q-icon>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -81,6 +92,7 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import version from '../../package.json';
+import { logout } from './Login.vue';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -115,6 +127,7 @@ export default defineComponent({
       /* eslint-disable-next-line */
       this.$root.$emit('calendar:next')
     },
+    logout: logout
   },
 })
 </script>

@@ -220,6 +220,8 @@ import NavigationBar from '../components/NavigationBar.vue'
 import axios from 'axios';
 import dayjs from 'dayjs';
 
+import { logout } from '../layouts/Login.vue'
+
 const formDefault = {
   title: '',
   description: '',
@@ -415,7 +417,8 @@ export default defineComponent({
       axios
         .post(`${process.env.BACKEND_URL}/add-entry`, formPayload, {
           params: {
-            token: localStorage.getItem("token")
+            token: localStorage.getItem("token"),
+            source: localStorage.getItem("source")
           },
           headers: {
             "Content-Type": "application/json"
@@ -437,7 +440,7 @@ export default defineComponent({
 
       axios
         .put(`${process.env.BACKEND_URL}/edit-entry`, putPayload, {
-          params: {entryId: putPayload.entryId, token: localStorage.getItem("token")},
+          params: {entryId: putPayload.entryId, token: localStorage.getItem("token"), source: localStorage.getItem("source")},
           headers: {"Content-Type": "application/json"}
         })
         .then(({response}) => {
@@ -470,7 +473,8 @@ export default defineComponent({
       axios
         .get(`${process.env.BACKEND_URL}/get-entries`, {
           params: {
-            token: localStorage.getItem("token")
+            token: localStorage.getItem("token"),
+            source: localStorage.getItem("source")
           }
         })
         .then(({data}) => {
@@ -487,6 +491,13 @@ export default defineComponent({
           }));
 
           this.events = [...localData];
+        })
+        .catch(({response}) => {
+          console.log(response);
+          if(response.status == 401){
+            logout();
+          }
+          // An error happened.
         });
     },
     deleteEvent(){
@@ -494,7 +505,8 @@ export default defineComponent({
         .delete(`${process.env.BACKEND_URL}/delete-entry`, {
           params: {
             token: localStorage.getItem("token"),
-            entryId: this.viewEvent.entryId
+            entryId: this.viewEvent.entryId,
+            source: localStorage.getItem("source")
           }
         })
         .then(({response}) => {
