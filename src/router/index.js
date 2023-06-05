@@ -24,7 +24,18 @@ export default route(function (/* { store, ssrContext } */) {
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE)
-  })
+  });
+
+  Router.beforeEach((from, to, next) => {
+    if(from.path !== '/login'){
+      if(!localStorage.getItem("source") || !localStorage.getItem("token")){
+        next('./login');
+        return;
+      }
+    }
+
+    next();
+  });
 
   return Router
 })

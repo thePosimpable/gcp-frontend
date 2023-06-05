@@ -38,7 +38,6 @@ export const relogin = () => {
 
 export const logout = () => {
   const auth = getAuth();
-  console.log(auth);
   signOut(auth).then((response) => {
     relogin();
     console.log("successful signout", response)
