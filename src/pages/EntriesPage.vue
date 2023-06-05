@@ -1,41 +1,57 @@
 <template>
   <q-page-layout>
+
     <q-page class="flex full-height ">
-      <div class="row full-width">
-        <q-table
-          class="col"
-          title="Table Title"
-          :rows="rows"
-          :columns="columns"
-          row-key="name"
-          :rows-per-page-options="[25, 50, 75, 100, 0]"
-        >
-        <template v-slot:top="props">
-          <div class="row col q-gutter-sm">
-            <div class="col-2 q-table__title">Entries</div>
 
-            <q-space />
+      <div class="full-width">
+        <div>
+          <q-table
+            class="my-sticky-header-table"
+            flat bordered
+            title="Table Title"
+            :rows="rows"
+            :columns="columns"
+            row-key="name"
+            :rows-per-page-options="[25, 50, 75, 100, 0]"
+            :loading="showLoading"
+          >
+            <template v-slot:top="props">
+              <div class="row col q-gutter-sm">
+                <div class="col-2 q-table__title">Entries</div>
 
-            <q-btn flat dense icon="add" label="Add Entry"/>
-            <q-btn flat dense icon="delete" label="Delete Entry"/>
-          </div>
+                <q-space />
 
-        </template>
+                <q-btn flat dense icon="add" label="Add Entry"/>
+                <q-btn flat dense icon="delete" label="Delete Entry"/>
+              </div>
+            </template>
 
-        <template v-slot:body-cell-color="props">
-        <q-td :props="props">
-          <div>
-            <span :style="`color: ${props.value}`">{{props.value}}</span>
-            <!-- <q-badge color="purple" :label="props.value" /> -->
+            <template v-slot:body-cell-title="props">
+              <q-td :props="props" style="white-space: wrap">
+                <p>{{ props.value }}</p>
+              </q-td>
+            </template>
 
-          </div>
-          <div class="my-table-details">
-            {{ props.row.details }}
-          </div>
-        </q-td>
-      </template>
-        </q-table>
+            <template v-slot:body-cell-description="props">
+              <q-td :props="props" style="white-space: wrap">
+                <p>{{ props.value }}</p>
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-color="props">
+              <q-td :props="props">
+                <div>
+                  <span :style="`color: ${props.value}`">{{props.value}}</span>
+                  <!-- <q-badge color="purple" :label="props.value" /> -->
+
+                </div>
+              </q-td>
+            </template>
+          </q-table>
       </div>
+      </div>
+
+
     </q-page>
   </q-page-layout>
 </template>
@@ -79,10 +95,13 @@ export default defineComponent({
       columns: columns,
       rows: [],
       events: [],
+      showLoading: false,
     }
   },
   methods: {
     getEntries(){
+      this.showLoading = true;
+
       axios
         .get(`${process.env.BACKEND_URL}/get-entries`, {
           params: {
@@ -92,9 +111,12 @@ export default defineComponent({
         })
         .then(({data}) => {
           this.rows = [...data];
+          this.showLoading = false;
         })
         .catch(({response}) => {
           console.log(response);
+          this.showLoading = false;
+
           if(response.status == 401){
             logout();
           }
@@ -109,3 +131,31 @@ export default defineComponent({
 
 
 </script>
+
+<style lang="sass">
+.my-sticky-header-table
+  /* height or max-height is important */
+  height: 92vh
+
+  .q-table__top,
+  .q-table__bottom,
+  thead tr:first-child th
+    /* bg color is important for th; just specify one */
+    background-color: white
+
+  thead tr th
+    position: sticky
+    z-index: 1
+  thead tr:first-child th
+    top: 0
+
+  /* this is when the loading indicator appears */
+  &.q-table--loading thead tr:last-child th
+    /* height of all previous header rows */
+    top: 48px
+
+  /* prevent scrolling behind sticky top row on focus */
+  tbody
+    /* height of all previous header rows */
+    scroll-margin-top: 48px
+</style>

@@ -192,8 +192,17 @@
                 </div>
               </div>
             </template>
+
           </template>
         </q-calendar-month>
+
+        <q-inner-loading :showing="showLoading">
+          <q-spinner
+            color="primary"
+            size="3em"
+            :thickness="10"
+          />
+        </q-inner-loading>
       </div>
     </div>
   </div>
@@ -221,6 +230,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 
 import { logout } from '../layouts/Login.vue'
+import { useQuasar } from 'quasar';
 
 const formDefault = {
   title: '',
@@ -262,6 +272,25 @@ export default defineComponent({
         page: 1
       },
       iconpickerValue: null,
+      showLoading: false
+    }
+  },
+  setup () {
+    const $q = useQuasar()
+
+    return {
+      showNotif (message) {
+        $q.notify({
+          message: message,
+          color: 'positive',
+          actions: [
+            {
+              icon: 'close',
+              color: 'white'
+            }
+          ]
+        })
+      }
     }
   },
   methods: {
@@ -405,6 +434,8 @@ export default defineComponent({
       console.log('onClickHeadWorkweek', data)
     },
     saveAddEntry(){
+      this.showLoading = true;
+
       const formPayload = {
         title: this.eventForm.title,
         description: this.eventForm.description,
@@ -424,16 +455,22 @@ export default defineComponent({
             "Content-Type": "application/json"
           }
         })
-        .then(({response}) => {
+        .then((response) => {
           console.log(response);
+          this.showNotif(response.data);
           this.eventForm = {};
+          this.showLoading = false;
+
           this.getEntries();
         })
         .catch(({error}) => {
           console.log(error);
+          this.showLoading = false;
         });
     },
     saveEditEntry(){
+      this.showLoading = true;
+
       const putPayload = {...this.eventForm};
       putPayload.startDate = `${dayjs(putPayload.startDate).format('YYYY-MM-DD')}`
       putPayload.endDate = `${dayjs(putPayload.endDate).format('YYYY-MM-DD')}`
@@ -443,12 +480,16 @@ export default defineComponent({
           params: {entryId: putPayload.entryId, token: localStorage.getItem("token"), source: localStorage.getItem("source")},
           headers: {"Content-Type": "application/json"}
         })
-        .then(({response}) => {
+        .then((response) => {
+          this.showNotif(response.data);
           this.eventForm = {};
+          this.showLoading = false;
+
           this.getEntries();
         })
         .catch(({error}) => {
           console.log(error);
+          this.showLoading = false;
         });
     },
     onSubmit(){
@@ -470,6 +511,7 @@ export default defineComponent({
       return toSlash? `${dayjs(val).format('YYYY/MM/DD')}`: `${dayjs(val).format('YYYY-MM-DD')}`;
     },
     getEntries(){
+      this.showLoading = true;
       axios
         .get(`${process.env.BACKEND_URL}/get-entries`, {
           params: {
@@ -491,8 +533,10 @@ export default defineComponent({
           }));
 
           this.events = [...localData];
+          this.showLoading = false;
         })
         .catch(({response}) => {
+          this.showLoading = false;
           console.log(response);
           if(response.status == 401){
             logout();
@@ -501,6 +545,8 @@ export default defineComponent({
         });
     },
     deleteEvent(){
+      this.showLoading = true;
+
       axios
         .delete(`${process.env.BACKEND_URL}/delete-entry`, {
           params: {
@@ -509,12 +555,16 @@ export default defineComponent({
             source: localStorage.getItem("source")
           }
         })
-        .then(({response}) => {
+        .then((response) => {
           console.log(response);
+          this.showNotif(response.data);
+          this.showLoading = false;
+
           this.getEntries();
         })
         .catch(({error}) => {
           console.log(error);
+          this.showLoading = false;
         });
     },
     showEditForm(){
